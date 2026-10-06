@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Voxel Adventure</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#111;
+  font-family:Arial,sans-serif;
+  color:white;
+  touch-action:none;
+}
+
+#game{
+  position:fixed;
+  inset:0;
+}
+
+#hud{
+  position:fixed;
+  top:10px;
+  left:10px;
+  z-index:20;
+  pointer-events:none;
+  text-shadow:2px 2px 3px #000;
+}
+
+#hearts{
+  font-size:22px;
+}
+
+#info{
+  margin-top:4px;
+  font-size:13px;
+}
+
+#crosshair{
+  position:fixed;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  z-index:15;
+  font-size:25px;
+  pointer-events:none;
+  text-shadow:2px 2px 3px #000;
+}
+
+#hotbar{
+  position:fixed;
+  left:50%;
+  bottom:12px;
+  transform:translateX(-50%);
+  display:flex;
+  gap:4px;
+  z-index:30;
+}
+
+.slot{
+  width:52px;
+  height:52px;
+  border:2px solid #777;
+  background:rgba(20,20,20,.82);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  font-size:24px;
+  user-select:none;
+}
+
+.slot.selected{
+  border:3px solid #fff;
+}
+
+.slot small{
+  position:absolute;
+  right:3px;
+  bottom:1px;
+  font-size:12px;
+  color:white;
+  text-shadow:1px 1px 2px #000;
+}
+
+#startScreen{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  background:rgba(0,0,0,.78);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+#startScreen h1{
+  margin:0 0 8px;
+  font-size:38px;
+}
+
+#startScreen p{
+  opacity:.85;
+  max-width:420px;
+  line-height:1.5;
+}
+
+button{
+  border:0;
+  border-radius:10px;
+  background:#eee;
+  color:#111;
+  padding:12px 18px;
+  font-weight:bold;
+  font-size:15px;
+}
+
+#startBtn{
+  margin-top:15px;
+  font-size:18px;
+  padding:15px 30px;
+}
+
+#inventory{
+  position:fixed;
+  inset:0;
+  z-index:80;
+  background:rgba(0,0,0,.72);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:15px;
+}
+
+#inventory.open{
+  display:flex;
+}
+
+.panel{
+  width:min(720px,96vw);
+  max-height:90vh;
+  overflow:auto;
+  background:#252525;
+  border:3px solid #aaa;
+  border-radius:14px;
+  padding:15px;
+}
+
+.panel h2{
+  margin:0 0 12px;
+}
+
+.invTop{
+  display:flex;
+  gap:18px;
+  flex-wrap:wrap;
+}
+
+#armor{
+  display:grid;
+  grid-template-columns:repeat(2,70px);
+  gap:8px;
+}
+
+.armorSlot{
+  width:70px;
+  height:70px;
+  border:2px solid #777;
+  background:#151515;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-size:12px;
+}
+
+#items{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:6px;
+  flex:1;
+  min-width:280px;
+}
+
+#items .slot{
+  width:auto;
+  height:58px;
+}
+
+#crafting{
+  margin-top:15px;
+  border-top:1px solid #555;
+  padding-top:12px;
+}
+
+.recipe{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  background:#181818;
+  border:1px solid #444;
+  padding:8px;
+  margin:5px 0;
+  border-radius:8px;
+}
+
+.recipe button{
+  padding:8px 10px;
+}
+
+#mobileControls{
+  position:fixed;
+  inset:0;
+  z-index:40;
+  pointer-events:none;
+}
+
+#joystick{
+  position:absolute;
+  left:20px;
+  bottom:90px;
+  width:125px;
+  height:125px;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,.4);
+  background:rgba(0,0,0,.2);
+  pointer-events:auto;
+}
+
+#stick{
+  position:absolute;
+  left:37px;
+  top:37px;
+  width:50px;
+  height:50px;
+  border-radius:50%;
+  background:rgba(255,255,255,.55);
+}
+
+.mobileBtn{
+  position:absolute;
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  pointer-events:auto;
+  background:rgba(30,30,30,.7);
+  color:white;
+  border:2px solid rgba(255,255,255,.5);
+  padding:0;
+}
+
+#jumpBtn{
+  right:25px;
+  bottom:125px;
+}
+
+#breakBtn{
+  right:100px;
+  bottom:55px;
+}
+
+#placeBtn{
+  right:25px;
+  bottom:55px;
+}
+
+#invBtn{
+  right:25px;
+  top:70px;
+  width:55px;
+  height:55px;
+}
+
+@media(min-width:800px){
+  #mobileControls{
+    display:none;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="game"></div>
+
+<div id="hud">
+  <div id="hearts">❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️</div>
+  <div id="info">Voxel Adventure</div>
+</div>
+
+<div id="crosshair">+</div>
+
+<div id="hotbar"></div>
+
+<div id="inventory">
+  <div class="panel">
+
+    <h2>🎒 Inventar</h2>
+
+    <div class="invTop">
+
+      <div>
+        <h3>🛡️ Rüstung</h3>
+
+        <div id="armor">
+          <div class="armorSlot" data-armor="helmet">Helm</div>
+          <div class="armorSlot" data-armor="chestplate">Brust</div>
+          <div class="armorSlot" data-armor="leggings">Beine</div>
+          <div class="armorSlot" data-armor="boots">Stiefel</div>
+        </div>
+      </div>
+
+      <div style="flex:1">
+        <h3>Gegenstände</h3>
+        <div id="items"></div>
+      </div>
+
+    </div>
+
+    <div id="crafting">
+      <h3>🔨 Crafting</h3>
+
+      <div class="recipe">
+        <span>1 Holz → 4 Bretter</span>
+        <button onclick="craft('planks')">Craften</button>
+      </div>
+
+      <div class="recipe">
+        <span>3 Stein + 2 Bretter → Spitzhacke</span>
+        <button onclick="craft('pickaxe')">Craften</button>
+      </div>
+
+      <div class="recipe">
+        <span>8 Stein → Ofen</span>
+        <button onclick="craft('furnace')">Craften</button>
+      </div>
+
+      <div class="recipe">
+        <span>8 Luxus-Erz → Luxus-Barren</span>
+        <button onclick="craft('luxury_ingot')">Schmelzen</button>
+      </div>
+
+      <div class="recipe">
+        <span>5 Luxus-Barren → Luxus-Helm</span>
+        <button onclick="craft('helmet')">Craften</button>
+      </div>
+
+      <div class="recipe">
+        <span>8 Luxus-Barren → Luxus-Brust</span>
+        <button onclick="craft('chestplate')">Craften</button>
+      </div>
+
+      <div class="recipe">
+        <span>7 Luxus-Barren → Luxus-Beine</span>
+        <button onclick="craft('leggings')">Craften</button>
+      </div>
+
+      <div class="recipe">
+        <span>4 Luxus-Barren → Luxus-Stiefel</span>
+        <button onclick="craft('boots')">Craften</button>
+      </div>
+    </div>
+
+    <br>
+
+    <button onclick="toggleInventory()">Schließen</button>
+
+  </div>
+</div>
+
+<div id="mobileControls">
+
+  <div id="joystick">
+    <div id="stick"></div>
+  </div>
+
+  <button id="jumpBtn" class="mobileBtn">⬆</button>
+  <button id="breakBtn" class="mobileBtn">⛏</button>
+  <button id="placeBtn" class="mobileBtn">🧱</button>
+  <button id="invBtn" class="mobileBtn">🎒</button>
+
+</div>
+
+<div id="startScreen">
+  <h1>Voxel Adventure</h1>
+  <p>
+    Große Blockwelt mit Höhlen, seltenem Luxus-Erz,
+    Crafting, Inventar, Rüstung und Mobile-Steuerung.
+  </p>
+  <button id="startBtn">WELT STARTEN</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="game.js"></script>
+
+</body>
+</html>
